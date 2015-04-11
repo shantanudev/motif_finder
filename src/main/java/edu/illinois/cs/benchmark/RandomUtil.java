@@ -1,21 +1,17 @@
+package edu.illinois.cs.benchmark;
+
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by gourav on 2/16/15.
  */
-public class create_data_and_align {
+public class RandomUtil {
 
-  int L;
-  Random random;
+  static Random random = new Random(BenchmarkGenerator.seed);
 
-  public create_data_and_align(int L) {
-    this.L = L;
-    random = new Random(System.currentTimeMillis());
-  }
-
-  char getRandomNucleotide() {
+  // get random nt with uniform prob.
+  public static char getRandomNucleotide() {
     int val = random.nextInt(4);
     switch (val) {
       case 0: return 'A';
@@ -27,15 +23,18 @@ public class create_data_and_align {
     return 'A';
   }
 
-  char[] getRandomSequence() {
-    char[] s1 = new char[L];
-    for (int i=0; i<L; i++) {
+
+  // get random sequence of length l
+  public static char[] getRandomSequence(int l) {
+    char[] s1 = new char[l];
+    for (int i=0; i<l; i++) {
       s1[i] = getRandomNucleotide();
     }
     return s1;
   }
 
-  char getMutation(char original) {
+  // get a specific mutation for original nt.
+  public static char getMutation(char original) {
     if (original == 'A') {
       return 'C';
     } else if (original == 'T') {
@@ -50,7 +49,8 @@ public class create_data_and_align {
     return 'A';
   }
 
-  char[] createRandomMutations(char[] s1) {
+  // create mutated sequence
+  public static char[] createRandomMutations(char[] s1) {
     ArrayList<Character> s2 = new ArrayList<Character>();
     for (int i=0; i<s1.length; i++) {
       s2.add(s1[i]);
@@ -69,7 +69,8 @@ public class create_data_and_align {
     return ans;
   }
 
-  public void writeFASTA(String filename, char[] seq) throws IOException {
+  // write a seq into FASTA file
+  public static void writeFASTA(String filename, char[] seq) throws IOException {
     BufferedWriter writer = new BufferedWriter(new FileWriter(new File(filename)));
     writer.write(">" + filename);
     writer.newLine();
@@ -77,24 +78,43 @@ public class create_data_and_align {
     writer.close();
   }
 
+  //returns a sorted list of n random positions between 0 and l-1
+  public static Set<Integer> getRandomPositions(int n, int l) {
+    List<Integer> availablePositions = new ArrayList<Integer>();
+    for (int i=0; i<l; i++) {
+      availablePositions.add(i);
+    }
+    Set<Integer> randomPositions = new HashSet<Integer>();
+    for (int i=0; i<n; i++) {
+      int index = random.nextInt(availablePositions.size());
+      randomPositions.add(availablePositions.remove(index));
+    }
+    return randomPositions;
+  }
+
+  // return a random number between 0 and i-1
+  public static int getRandomPosition(int i) {
+    return random.nextInt(i);
+  }
+
+  // Alignment program main
   public static void main(String[] args) {
     if (args.length != 2) {
       System.out.println("Usage: java create_data_and_align <L> <name>");
       return;
     }
     String name = args[1];
-    create_data_and_align dataCreator = new create_data_and_align(Integer.parseInt(args[0]));
-    char[] s1 = dataCreator.getRandomSequence();
-    char[] s2 = dataCreator.createRandomMutations(s1);
-    char[] s3 = dataCreator.createRandomMutations(s1);
+    char[] s1 = getRandomSequence(Integer.parseInt(args[0]));
+    char[] s2 = createRandomMutations(s1);
+    char[] s3 = createRandomMutations(s1);
     //System.out.println(Arrays.toString(s1));
     //System.out.println(Arrays.toString(s2));
     //System.out.println(Arrays.toString(s3));
     String file1 = "1-" + name + ".txt";
     String file2 = "2-" + name + ".txt";
     try {
-      dataCreator.writeFASTA(file1, s2);
-      dataCreator.writeFASTA(file2, s3);
+      writeFASTA(file1, s2);
+      writeFASTA(file2, s3);
       Process process = Runtime.getRuntime().exec("java -cp target/classes/ AlignmentProgram " + file1 + " " + file2 + " /Users/gourav/Downloads/assn2-alnproblem/subs.txt -500");
       BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
       BufferedWriter writer = new BufferedWriter(new FileWriter(new File(name + ".txt")));
@@ -115,4 +135,5 @@ public class create_data_and_align {
       e.printStackTrace();
     }
   }
+
 }
