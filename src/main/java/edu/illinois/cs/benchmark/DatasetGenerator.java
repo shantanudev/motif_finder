@@ -1,5 +1,9 @@
 package edu.illinois.cs.benchmark;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -7,14 +11,14 @@ import java.util.*;
  */
 public class DatasetGenerator {
 
-  String name;
+
   int ML;
   int NM;
   int SL;
   int SC;
 
-  public DatasetGenerator(String name, int ML, int NM, int SL, int SC) {
-    this.name = name;
+  public DatasetGenerator( int ML, int NM, int SL, int SC) {
+
     this.ML = ML;
     this.NM = NM;
     this.SL = SL;
@@ -23,6 +27,8 @@ public class DatasetGenerator {
 
   public void generate(String dir) {
     // create dataset. Write into subdirectory of dir
+    File file = new File(dir);
+    file.mkdirs();
 
     //1. create SC sequences
     List<char[]> sequences = new ArrayList<char[]>();
@@ -56,34 +62,83 @@ public class DatasetGenerator {
       }
     }
 
-    //5. write four files -
-    // sequences.fa,
-    writeSequences(dir, sequences);
-    // sites.txt,
-    writeSites(dir, sitePositions);
-    //motif.txt,
-    writeMotif(dir, motif, randomPositions);
-    //motiflength.txt
-    writeMotifLength(dir, motif.length);
+    try {
+      //5. write four files -
+      // sequences.fa,
+      writeSequences(dir, sequences);
+      // sites.txt,
+      writeSites(dir, sitePositions);
+      //motif.txt,
+      writeMotif(dir, motif, randomPositions);
+      //motiflength.txt
+      writeMotifLength(dir, motif.length);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 
     return;
   }
 
   private void writeMotifLength(String dir, int length) {
-    //TODO
+    try {
+      BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/motiflength.txt")));
+      //System.out.println("writing " + length);
+      writer.write(length + "");
+      writer.newLine();
+      writer.flush();
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private void writeMotif(String dir, char[] motif, Set<Integer> randomPositions) {
-    //TODO
+    String motifString = "";
+    for (int index : randomPositions) {
+      motif[index] = '*';
+    }
+    for (char c : motif) {
+      motifString += c;
+    }
+    String line = "MOTIF1\t" + motif.length + "\t" + motifString;
+    try {
+      BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/motif.txt")));
+      writer.write(line);
+      writer.newLine();
+      writer.flush();
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private void writeSites(String dir, List<Integer> sitePositions) {
-    //TODO
+    try {
+      BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/sites.txt")));
+      for (int sitePos : sitePositions) {
+        //System.out.println("writing " + sitePos);
+        writer.write(sitePos + "");
+        writer.newLine();
+      }
+      writer.flush();
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
-  //Write FASTA file of sequences, sequences.fa
-  void writeSequences(String dir, List<char[]> sequences) {
-    //TODO
+
+  public static void writeSequences(String dir, List<char[]> sequences) throws IOException {
+    BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/sequences.fa")));
+    int index = 0;
+    for (char[] sequence : sequences) {
+      writer.write(">s" + index + ":");
+      writer.write(sequence);
+      writer.newLine();
+      index++;
+    }
+    writer.flush();
+    writer.close();
   }
 
 
