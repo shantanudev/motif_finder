@@ -1,5 +1,7 @@
 package edu.illinois.cs.benchmark;
 
+import edu.illinois.cs.algo.MotifFinder;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -141,6 +143,10 @@ public class DatasetGenerator {
     writer.close();
   }
 
+  public static void main(String[] args) {
+    DatasetGenerator datasetGenerator = new DatasetGenerator(8, 1, 10, 500);
+    datasetGenerator.generate("/Users/gourav/code/motif_finder/benchmarks/default/dataset0/");
+  }
 
 
 }
