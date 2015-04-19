@@ -23,14 +23,62 @@ public class MotifFinder {
     this.dir = dir;
   }
 
+  void writeSites(List<Integer> positions) throws IOException {
+    BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/predictedsites.txt")));
+    for (int pos : positions) {
+      //System.out.println("writing " + sitePos);
+      writer.write(pos + "");
+      writer.newLine();
+    }
+    writer.flush();
+    writer.close();
+  }
+
+  void writeMatrix() throws IOException {
+    BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/predictedmotif.txt")));
+    writer.write(">PMOTIF\t" + runningProfileMatrix[0].length);
+    writer.newLine();
+    for (int j=0; j<runningProfileMatrix[0].length; j++) {
+      for (int i=0; i<runningProfileMatrix.length; i++) {
+        writer.write(runningProfileMatrix[i][j] + "\t");
+      }
+      writer.newLine();
+    }
+    writer.write("<");
+    writer.flush();
+    writer.close();
+  }
+
+  List<char[]> readSequences() throws IOException {
+    List<char[]> sequences = new ArrayList<char[]>();
+    BufferedReader reader = new BufferedReader(new FileReader(new File(dir + "/sequences.fa")));
+    String line = null;
+    while ((line = reader.readLine())!=null) {
+      line = line.substring(4);
+      //System.out.println("Seq length: " + line.length());
+      sequences.add(line.toCharArray());
+    }
+    reader.close();
+    return sequences;
+  }
+
+  int readMotifLength() throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(new File(dir + "/motiflength.txt")));
+    int l = Integer.parseInt(reader.readLine());
+    //System.out.println("motif length: " + l);
+    reader.close();
+    return l;
+  }
+
   List<Integer> getAlignment(char[] s1, char[] s2, int l) {
     int pos1 = -1, pos2 = -1;
-    double maxScore = Double.MIN_VALUE;
+    double maxScore = Integer.MIN_VALUE;
     for (int i=0; i<s1.length -l + 1; i++) {
       for (int j=0; j<s2.length -l + 1; j++) {
         //System.out.println("Get Score : " + i +", " + j);
         double score = getScore(s1, s2, l, i, j);
         if (score > maxScore) {
+          //System.out.println("Got score: " + score);
           maxScore = score;
           pos1 = i;
           pos2 = j;
@@ -77,6 +125,7 @@ public class MotifFinder {
   }
 
   private int[][] getProfileMatrix(List<char[]> sequences, List<Integer> startingPoints, int l) {
+    //System.out.println("ProfileMatrix: starting points: " + startingPoints);
     int[][] profileMatrix = new int[4][l];
     //int columnSize = sequences.get(0).length;
 
@@ -157,6 +206,7 @@ public class MotifFinder {
   public void greedySearch(List<char[]> sequences, int l) {
     //1. pick the best l-mer for first two sequences
     List<Integer> positions = getAlignment(sequences.get(0), sequences.get(1), l);
+    //System.out.println("Best positions: " + positions);
 
     List<char[]> seenSequences = new ArrayList<char[]>();
     seenSequences.add(sequences.get(0));
@@ -167,7 +217,7 @@ public class MotifFinder {
     // t-2 iterations: keep the runningProfileMatrix and positions
     int i=2;
     while (i<sequences.size()) {
-      System.out.println("Iteration " + i);
+      //System.out.println("Iteration " + i);
       positions.add(getBestLMer(sequences.get(i), l));
       i++;
     }
@@ -185,53 +235,6 @@ public class MotifFinder {
     }
 
 
-  }
-
-  void writeSites(List<Integer> positions) throws IOException {
-    BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/predictedsites.txt")));
-    for (int pos : positions) {
-      //System.out.println("writing " + sitePos);
-      writer.write(pos + "");
-      writer.newLine();
-    }
-    writer.flush();
-    writer.close();
-  }
-
-  void writeMatrix() throws IOException {
-    BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/predictedmotif.txt")));
-    writer.write(">PMOTIF\t" + runningProfileMatrix[0].length);
-    writer.newLine();
-    for (int j=0; j<runningProfileMatrix[0].length; j++) {
-      for (int i=0; i<runningProfileMatrix.length; i++) {
-        writer.write(runningProfileMatrix[i][j] + "\t");
-      }
-      writer.newLine();
-    }
-    writer.write("<");
-    writer.flush();
-    writer.close();
-  }
-
-  List<char[]> readSequences() throws IOException {
-    List<char[]> sequences = new ArrayList<char[]>();
-    BufferedReader reader = new BufferedReader(new FileReader(new File(dir + "/sequences.fa")));
-    String line = null;
-    while ((line = reader.readLine())!=null) {
-      line = line.substring(4);
-      //System.out.println("Seq length: " + line.length());
-      sequences.add(line.toCharArray());
-    }
-    reader.close();
-    return sequences;
-  }
-
-  int readMotifLength() throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(new File(dir + "/motiflength.txt")));
-    int l = Integer.parseInt(reader.readLine());
-    //System.out.println("motif length: " + l);
-    reader.close();
-    return l;
   }
 
   public static void main(String[] args) {
