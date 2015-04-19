@@ -144,7 +144,7 @@ public class DatasetGenerator {
   }
 
   public static void main(String[] args) {
-    DatasetGenerator datasetGenerator = new DatasetGenerator(8, 1, 10, 500);
+    DatasetGenerator datasetGenerator = new DatasetGenerator(8, 1, 500, 10);
     datasetGenerator.generate("/Users/gourav/code/motif_finder/benchmarks/default/dataset0/");
   }
 

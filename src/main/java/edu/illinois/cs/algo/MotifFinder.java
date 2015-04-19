@@ -1,9 +1,6 @@
 package edu.illinois.cs.algo;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -91,7 +88,7 @@ public class MotifFinder {
 
       for (int i=0; i<sequences.size(); i++) {
         int index = startingPoints.get(i) + column;
-
+        //System.out.println("i, index:" + i + ", " + index);
         if (sequences.get(i)[index] == 'A') {
           profileMatrix[A][column]++;
         }
@@ -170,16 +167,15 @@ public class MotifFinder {
     // t-2 iterations: keep the runningProfileMatrix and positions
     int i=2;
     while (i<sequences.size()) {
-      //System.out.println("Iteration " + i);
+      System.out.println("Iteration " + i);
       positions.add(getBestLMer(sequences.get(i), l));
       i++;
     }
 
-    //System.out.println("Positions: "  + positions);
-
-    //for (int[] arr : runningProfileMatrix) {
-     // System.out.println(Arrays.toString(arr));
-    //}
+    System.out.println("Positions: "  + positions);
+    for (int[] arr : runningProfileMatrix) {
+      System.out.println(Arrays.toString(arr));
+    }
 
     try {
       writeSites(positions);
@@ -217,16 +213,45 @@ public class MotifFinder {
     writer.close();
   }
 
+  List<char[]> readSequences() throws IOException {
+    List<char[]> sequences = new ArrayList<char[]>();
+    BufferedReader reader = new BufferedReader(new FileReader(new File(dir + "/sequences.fa")));
+    String line = null;
+    while ((line = reader.readLine())!=null) {
+      line = line.substring(4);
+      //System.out.println("Seq length: " + line.length());
+      sequences.add(line.toCharArray());
+    }
+    reader.close();
+    return sequences;
+  }
+
+  int readMotifLength() throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(new File(dir + "/motiflength.txt")));
+    int l = Integer.parseInt(reader.readLine());
+    //System.out.println("motif length: " + l);
+    reader.close();
+    return l;
+  }
+
   public static void main(String[] args) {
     MotifFinder finder = new MotifFinder("/Users/gourav/code/motif_finder/benchmarks/default/dataset0/");
+    try {
+      List<char[]> sequences = finder.readSequences();
+      int l = finder.readMotifLength();
+      finder.greedySearch(sequences, l);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 
-    List<char[]> sequences = new ArrayList<char[]>();
+    /*List<char[]> sequences = new ArrayList<char[]>();
     sequences.add(new char[]{'G', 'A', 'G', 'C'});
     sequences.add(new char[]{'G', 'G', 'C', 'G'});
     sequences.add(new char[]{'T', 'G', 'A', 'G'});
     sequences.add(new char[]{'A', 'G', 'C', 'G'});
 
-    finder.greedySearch(sequences, 3);
+
+    finder.greedySearch(sequences, 3);*/
 
     //System.out.print(finder.getAlignment(sequences.get(0), sequences.get(1), 3));
 
