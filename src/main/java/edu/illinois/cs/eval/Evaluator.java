@@ -30,6 +30,7 @@ public class Evaluator {
 
   static void runAll(String parent) {
     //String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
+    double sumEntropy = 0;
     for (int dataset=0; dataset<10; dataset++) {
       String dir = parent + "/dataset" + dataset + "/";
       try {
@@ -40,17 +41,19 @@ public class Evaluator {
 
         double[][] probMatrix = getProbMatrix(MotifFinder.getProfileMatrix(sequences, sites, l));
         //MotifFinder.printMatrix(probMatrix);
-        System.out.println();
+        //System.out.println();
         double[][] predictedProbMatrix = getProbMatrix(MotifFinder.getProfileMatrix(sequences, predictedSites, l));
         //MotifFinder.printMatrix(predictedProbMatrix);
-        System.out.println();
+        //System.out.println();
 
-        System.out.println(getRelativeEntropy(probMatrix, predictedProbMatrix) + " - " + dir);
+        //System.out.println(getRelativeEntropy(probMatrix, predictedProbMatrix) + " - " + dir);
+        sumEntropy += getRelativeEntropy(probMatrix, predictedProbMatrix);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
+    System.out.println(sumEntropy / 10 + " - " + parent);
   }
   // Gives D(p || q)
   static double getRelativeEntropy(double[][] p, double[][] q) {
@@ -65,7 +68,8 @@ public class Evaluator {
         }
       }
     }
-    return entropy;
+    //TODO: Should we take absolute ?
+    return Math.abs(entropy);
   }
 
   static double[][] getProbMatrix(int[][] profileMatrix) {
