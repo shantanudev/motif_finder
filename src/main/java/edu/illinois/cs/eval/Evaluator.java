@@ -15,16 +15,19 @@ public class Evaluator {
   public static final double INF = 1000;
 
   public static void main(String[] args) {
-    runAll("/Users/gourav/code/motif_finder/benchmarks/default/");
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/ML1/");
-    runAll("/Users/gourav/code/motif_finder/benchmarks/ML2/");
+    String path = "/Users/gourav/code/motif_finder/benchmarks/";
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/NM1/");
-    runAll("/Users/gourav/code/motif_finder/benchmarks/NM2/");
+    runAll(path + "/default/");
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/SC1/");
-    runAll("/Users/gourav/code/motif_finder/benchmarks/SC2/");
+    runAll(path + "/ML1/");
+    runAll(path + "/ML2/");
+
+    runAll(path + "/NM1/");
+    runAll(path + "/NM2/");
+
+    runAll(path + "/SC1/");
+    runAll(path + "/SC2/");
 
   }
 
@@ -60,7 +63,7 @@ public class Evaluator {
     double entropy = 0;
     for (int i=0; i<p.length; i++) {
       for (int j=0; j<p[0].length; j++) {
-        //TODO: What if q(x) is 0 - should it go to infinity as per priceton doc ?
+        //TODO: What if q(x) is 0 - should it go to infinity as per princeton doc ?
         if (p[i][j]!=0 && q[i][j]!=0) {
           entropy += p[i][j] * Math.log(p[i][j] / q[i][j]);
         } else if (p[i][j] != 0 && q[i][j]==0) {
@@ -69,7 +72,8 @@ public class Evaluator {
       }
     }
     //TODO: Should we take absolute ?
-    return Math.abs(entropy);
+    //return Math.abs(entropy);
+    return (entropy);
   }
 
   static double[][] getProbMatrix(int[][] profileMatrix) {

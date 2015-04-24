@@ -252,16 +252,18 @@ public class MotifFinder {
 
   public static void main(String[] args) {
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/default/");
+    String path = "/Users/gourav/code/motif_finder/benchmarks/";
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/ML1/");
-    runAll("/Users/gourav/code/motif_finder/benchmarks/ML2/");
+    runAll(path + "/default/");
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/NM1/");
-    runAll("/Users/gourav/code/motif_finder/benchmarks/NM2/");
+    runAll(path + "/ML1/");
+    runAll(path + "/ML2/");
 
-    runAll("/Users/gourav/code/motif_finder/benchmarks/SC1/");
-    runAll("/Users/gourav/code/motif_finder/benchmarks/SC2/");
+    runAll(path + "/NM1/");
+    runAll(path + "/NM2/");
+
+    runAll(path + "/SC1/");
+    runAll(path + "/SC2/");
 
     /*for (int dataset=0; dataset<10; dataset++) {
       String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
