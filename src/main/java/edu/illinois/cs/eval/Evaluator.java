@@ -2,6 +2,7 @@ package edu.illinois.cs.eval;
 
 import edu.illinois.cs.algo.FileUtil;
 import edu.illinois.cs.algo.MotifFinder;
+import edu.illinois.cs.benchmark.BenchmarkGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,25 +14,30 @@ import java.util.List;
 public class Evaluator {
 
   public static final double INF = 1000;
+  public static final double PSUEDO_COUNT = 1;
 
   public static void main(String[] args) {
 
-    String path = "/Users/gourav/code/motif_finder/benchmarks/";
+    //String path = "/Users/gourav/code/motif_finder/benchmarks/";
 
-    runAll(path + "/default/");
+    double def = runAll(BenchmarkGenerator.path + "/default/");
 
-    runAll(path + "/ML1/");
-    runAll(path + "/ML2/");
+    double ml1 = runAll(BenchmarkGenerator.path + "/ML1/");
+    double ml2 = runAll(BenchmarkGenerator.path + "/ML2/");
+    System.out.println("ML [6,7,8]: " + ml1 + ", " + ml2 + ", " + def);
 
-    runAll(path + "/NM1/");
-    runAll(path + "/NM2/");
+    double nm1 = runAll(BenchmarkGenerator.path + "/NM1/");
+    double nm2 = runAll(BenchmarkGenerator.path + "/NM2/");
+    System.out.println("NM [0,1,2]: " + nm1 + ", " + def + ", " + nm2);
 
-    runAll(path + "/SC1/");
-    runAll(path + "/SC2/");
+    double sc1 = runAll(BenchmarkGenerator.path + "/SC1/");
+    double sc2 = runAll(BenchmarkGenerator.path + "/SC2/");
+    System.out.println("SC [5,10,20]: " + sc1 + ", " + def + ", " + sc2);
+
 
   }
 
-  static void runAll(String parent) {
+  static double runAll(String parent) {
     //String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
     double sumEntropy = 0;
     for (int dataset=0; dataset<10; dataset++) {
@@ -50,14 +56,35 @@ public class Evaluator {
         //System.out.println();
 
         //System.out.println(getRelativeEntropy(probMatrix, predictedProbMatrix) + " - " + dir);
-        sumEntropy += getRelativeEntropy(probMatrix, predictedProbMatrix);
+        sumEntropy += getRelativeEntropyWithPsuedoCounts(probMatrix, predictedProbMatrix);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
-    System.out.println(sumEntropy / 10 + " - " + parent);
+    sumEntropy = sumEntropy / 10;
+    //System.out.println(sumEntropy + " - " + parent);
+    return sumEntropy;
   }
+
+  // Gives D(p || q) with psuedoCounts
+  static double getRelativeEntropyWithPsuedoCounts(double[][] p, double[][] q) {
+    double entropy = 0;
+
+    for (int j=0; j<p[0].length; j++) {
+      double[] pVector = new double[p.length];
+      double[] qVector = new double[q.length];
+      for (int i=0; i<p.length; i++) {
+        pVector[i] = p[i][j];
+        qVector[i] = q[i][j];
+      }
+      entropy += getRelativeEntropy(pVector, qVector);
+    }
+
+    //return Math.abs(entropy);
+    return (entropy / p[0].length);
+  }
+
   // Gives D(p || q)
   static double getRelativeEntropy(double[][] p, double[][] q) {
     double entropy = 0;
@@ -76,16 +103,30 @@ public class Evaluator {
     return (entropy);
   }
 
+  //Entropy with pseudo counts
+  static double getRelativeEntropy(double[] p, double[] q) {
+    double entropy = 0;
+    assert (p.length == q.length);
+
+    for (int i=0; i<p.length; i++) {
+      //add psuedo counts
+      double pPsuedo = p[i] + PSUEDO_COUNT;
+      double qPsuedo = q[i] + PSUEDO_COUNT;
+
+      entropy += pPsuedo * Math.log(pPsuedo / qPsuedo);
+    }
+    return entropy;
+  }
+
   static double[][] getProbMatrix(int[][] profileMatrix) {
     double[][] probMatrix = new double[profileMatrix.length][profileMatrix[0].length];
-    int sum=0;
+
     for (int j=0; j<profileMatrix[0].length; j++) {
+      int sum=0;
       for (int i=0; i<profileMatrix.length; i++) {
         sum+=profileMatrix[i][j];
       }
-    }
 
-    for (int j=0; j<profileMatrix[0].length; j++) {
       for (int i=0; i<profileMatrix.length; i++) {
         probMatrix[i][j] = (1.0*profileMatrix[i][j]) / (1.0*sum);
       }

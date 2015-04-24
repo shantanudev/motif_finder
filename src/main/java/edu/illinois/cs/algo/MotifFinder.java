@@ -1,5 +1,7 @@
 package edu.illinois.cs.algo;
 
+import edu.illinois.cs.benchmark.BenchmarkGenerator;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -252,18 +254,18 @@ public class MotifFinder {
 
   public static void main(String[] args) {
 
-    String path = "/Users/gourav/code/motif_finder/benchmarks/";
+    //String path = "/Users/gourav/code/motif_finder/benchmarks/";
 
-    runAll(path + "/default/");
+    runAll(BenchmarkGenerator.path + "/default/");
 
-    runAll(path + "/ML1/");
-    runAll(path + "/ML2/");
+    runAll(BenchmarkGenerator.path + "/ML1/");
+    runAll(BenchmarkGenerator.path + "/ML2/");
 
-    runAll(path + "/NM1/");
-    runAll(path + "/NM2/");
+    runAll(BenchmarkGenerator.path + "/NM1/");
+    runAll(BenchmarkGenerator.path + "/NM2/");
 
-    runAll(path + "/SC1/");
-    runAll(path + "/SC2/");
+    runAll(BenchmarkGenerator.path + "/SC1/");
+    runAll(BenchmarkGenerator.path + "/SC2/");
 
     /*for (int dataset=0; dataset<10; dataset++) {
       String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";

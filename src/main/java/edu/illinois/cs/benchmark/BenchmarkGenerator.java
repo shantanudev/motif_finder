@@ -9,6 +9,9 @@ public class BenchmarkGenerator {
 
   public static final long seed = 1;
 
+  //Change this value if you want to run on a different machine.
+  public static final String path = "/Users/gourav/code/motif_finder/benchmarks"  + "/";
+
   int[] valNM = new int[]{0,2};
   int[] valML = new int[]{6,7};
   int[] valSC = new int[]{5,20};
@@ -27,7 +30,8 @@ public class BenchmarkGenerator {
   }
 
   public static void main(String[] args) {
-    BenchmarkGenerator benchmarkGenerator = new BenchmarkGenerator(args[0]);
+
+    BenchmarkGenerator benchmarkGenerator = new BenchmarkGenerator(BenchmarkGenerator.path);
     benchmarkGenerator.generate();
   }
 
