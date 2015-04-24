@@ -221,9 +221,9 @@ public class MotifFinder {
       i++;
     }
 
-    System.out.println("Positions: "  + positions);
+    //System.out.println("Positions: "  + positions);
     for (int[] arr : runningProfileMatrix) {
-      System.out.println(Arrays.toString(arr));
+      //System.out.println(Arrays.toString(arr));
     }
 
     try {
@@ -236,7 +236,8 @@ public class MotifFinder {
 
   }
 
-  public static void runAll (String parent) {
+  public static long runAll (String parent) {
+    long start = System.currentTimeMillis();
     MotifFinder finder = null;
     for (int dataset=0; dataset<10; dataset++) {
       String dir = parent + "/dataset" + dataset + "/";
@@ -250,6 +251,7 @@ public class MotifFinder {
         e.printStackTrace();
       }
     }
+    return (start = System.currentTimeMillis() - start);
   }
 
   public static void main(String[] args) {

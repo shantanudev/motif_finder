@@ -7,7 +7,7 @@ import java.io.File;
  */
 public class BenchmarkGenerator {
 
-  public static final long seed = 1;
+  public static long seed = 1;
 
   //Change this value if you want to run on a different machine.
   public static final String path = "/Users/gourav/code/motif_finder/benchmarks"  + "/";

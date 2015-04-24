@@ -37,7 +37,7 @@ public class Evaluator {
 
   }
 
-  static double runAll(String parent) {
+  public static double runAll(String parent) {
     //String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
     double sumEntropy = 0;
     for (int dataset=0; dataset<10; dataset++) {
