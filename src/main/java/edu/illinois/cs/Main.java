@@ -1,5 +1,6 @@
-package edu.illinois.cs.algo;
+package edu.illinois.cs;
 
+import edu.illinois.cs.algo.MotifFinder;
 import edu.illinois.cs.benchmark.BenchmarkGenerator;
 import edu.illinois.cs.eval.Evaluator;
 
@@ -11,7 +12,8 @@ public class Main {
   public static void main(String[] args) {
 
     //0. Set seed
-    BenchmarkGenerator.seed = System.currentTimeMillis();
+    //BenchmarkGenerator.seed = System.currentTimeMillis();
+    BenchmarkGenerator.seed = 1429914670752L;
     System.out.println("Seed: " + BenchmarkGenerator.seed + "\n");
 
     //1. Create benchmark
@@ -19,21 +21,21 @@ public class Main {
     benchmarkGenerator.generate();
 
 
-
-
     //2. Run Motif Finder and log running times
-    long defTime = MotifFinder.runAll(BenchmarkGenerator.path + "/default/");
+    long defTime = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/default/");
+    //long defTime2 = MotifFinder.runAll(BenchmarkGenerator.path + "/default/");
+    //System.out.println("Default Times [1,2]: " + defTime + ", " + defTime2);
 
-    long ml1Time = MotifFinder.runAll(BenchmarkGenerator.path + "/ML1/");
-    long ml2Time = MotifFinder.runAll(BenchmarkGenerator.path + "/ML2/");
+    long ml1Time = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/ML1/");
+    long ml2Time = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/ML2/");
     System.out.println("ML Time [6,7,8]: " + ml1Time + ", " + ml2Time + ", " + defTime);
 
-    long nm1Time = MotifFinder.runAll(BenchmarkGenerator.path + "/NM1/");
-    long nm2Time = MotifFinder.runAll(BenchmarkGenerator.path + "/NM2/");
+    long nm1Time = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/NM1/");
+    long nm2Time = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/NM2/");
     System.out.println("NM Time [0,1,2]: " + nm1Time + ", " + defTime + ", " + nm2Time);
 
-    long sc1Time = MotifFinder.runAll(BenchmarkGenerator.path + "/SC1/");
-    long sc2Time = MotifFinder.runAll(BenchmarkGenerator.path + "/SC2/");
+    long sc1Time = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/SC1/");
+    long sc2Time = MotifFinder.runAllWithPerms(BenchmarkGenerator.path + "/SC2/");
     System.out.println("SC Time [5,10,20]: " + sc1Time + ", " + defTime + ", " + sc2Time);
 
 

@@ -1,6 +1,7 @@
 package edu.illinois.cs.algo;
 
 import edu.illinois.cs.benchmark.BenchmarkGenerator;
+import edu.illinois.cs.eval.Evaluator;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ public class MotifFinder {
   public static final int T=3;
 
   int[][] runningProfileMatrix;
+  double bestScore;
 
   String dir;
 
@@ -36,13 +38,13 @@ public class MotifFinder {
     writer.close();
   }
 
-  void writeMatrix() throws IOException {
+  void writeMatrix(int[][] matrix) throws IOException {
     BufferedWriter writer = new BufferedWriter(new FileWriter(new File(dir + "/predictedmotif.txt")));
-    writer.write(">PMOTIF\t" + runningProfileMatrix[0].length);
+    writer.write(">PMOTIF\t" + matrix[0].length);
     writer.newLine();
-    for (int j=0; j<runningProfileMatrix[0].length; j++) {
-      for (int i=0; i<runningProfileMatrix.length; i++) {
-        writer.write(runningProfileMatrix[i][j] + "\t");
+    for (int j=0; j<matrix[0].length; j++) {
+      for (int i=0; i<matrix.length; i++) {
+        writer.write(matrix[i][j] + "\t");
       }
       writer.newLine();
     }
@@ -105,11 +107,14 @@ public class MotifFinder {
     int[][] profileMatrix = getProfileMatrix(sequences, startingPoints, l);
     //double q = sequences.size() * 1.0 / 4.0;
 
-    return getScore(profileMatrix);
+    return getScore(profileMatrix, sequences.size());
   }
 
-  private double getScore(int[][] profileMatrix) {
-    double q = profileMatrix[0].length * 1.0 / 4.0;
+  private double getScore(int[][] profileMatrix, int sc) {
+    //TODO: Wait, why q is the length of the motif / 4 - shouldn't it be SC /4 ?
+    // looks like it really doesn't have much performance effect
+    //double q = profileMatrix[0].length * 1.0 / 4.0;
+    double q = sc * 1.0 / 4.0;
     //calculate info content
     double score = 0;
     for (int column=0; column<profileMatrix[0].length; column++) {
@@ -117,9 +122,14 @@ public class MotifFinder {
         double W_beta = profileMatrix[beta][column] * 1.0;
         if (W_beta != 0) {
           score += W_beta * Math.log(W_beta / q);
+        } else {
+          //TODO: Is Psuedo counts ok here ?
+          // Confirm - psuedo counts affect the numbers, which are better in absence of these.
+          //score += Evaluator.PSUEDO_COUNT * Math.log(Evaluator.PSUEDO_COUNT / q);
         }
       }
     }
+    //System.out.println(score);
     return score;
   }
 
@@ -155,8 +165,8 @@ public class MotifFinder {
     return profileMatrix;
   }
 
-  int getBestLMer(char[] seq, int l) {
-    double maxScore = Double.MIN_VALUE;
+  int getBestLMer(char[] seq, int l, int sc) {
+    double maxScore = Integer.MIN_VALUE;
     int bestStartPoint = -1;
     int[][] bestProfileMatrix = null;
 
@@ -180,7 +190,7 @@ public class MotifFinder {
         }
       }
 
-      double score = getScore(temp);
+      double score = getScore(temp, sc);
       if (score > maxScore) {
         maxScore = score;
         bestStartPoint = startPoint;
@@ -189,11 +199,12 @@ public class MotifFinder {
     }
 
     runningProfileMatrix = bestProfileMatrix;
+    bestScore = maxScore;
     return bestStartPoint;
 
   }
 
-  private static int[][] copy(int[][] original) {
+  public static int[][] copy(int[][] original) {
     int[][] duplicate = new int[original.length][original[0].length];
     int index = 0;
     for (int[] row : original) {
@@ -202,7 +213,7 @@ public class MotifFinder {
     return duplicate;
   }
 
-  public void greedySearch(List<char[]> sequences, int l) {
+  public MotifResult greedySearch(List<char[]> sequences, int l, int mode) {
     //1. pick the best l-mer for first two sequences
     List<Integer> positions = getAlignment(sequences.get(0), sequences.get(1), l);
     //System.out.println("Best positions: " + positions);
@@ -210,30 +221,37 @@ public class MotifFinder {
     List<char[]> seenSequences = new ArrayList<char[]>();
     seenSequences.add(sequences.get(0));
     seenSequences.add(sequences.get(1));
+
+    //reset global variables - not required to set bestScore though
     runningProfileMatrix = getProfileMatrix(seenSequences, positions, l);
+    bestScore = Integer.MIN_VALUE;
 
 
     // t-2 iterations: keep the runningProfileMatrix and positions
     int i=2;
     while (i<sequences.size()) {
       //System.out.println("Iteration " + i);
-      positions.add(getBestLMer(sequences.get(i), l));
+      positions.add(getBestLMer(sequences.get(i), l, i+1));
       i++;
     }
 
-    //System.out.println("Positions: "  + positions);
-    for (int[] arr : runningProfileMatrix) {
-      //System.out.println(Arrays.toString(arr));
+    // Either print to terminal or write to a file
+    if (mode == Constants.PRINT_TO_CONSOLE) {
+      System.out.println("Positions: " + positions);
+      for (int[] arr : runningProfileMatrix) {
+        System.out.println(Arrays.toString(arr));
+      }
+    } else if (mode == Constants.WRITE_TO_FILE) {
+      try {
+        writeSites(positions);
+        writeMatrix(runningProfileMatrix);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
 
-    try {
-      writeSites(positions);
-      writeMatrix();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-
+    //compose and return result
+    return new MotifResult(runningProfileMatrix, bestScore, positions);
   }
 
   public static long runAll (String parent) {
@@ -246,19 +264,103 @@ public class MotifFinder {
       try {
         List<char[]> sequences = FileUtil.readSequences(dir);
         int l = FileUtil.readMotifLength(dir);
-        finder.greedySearch(sequences, l);
+        finder.greedySearch(sequences, l, Constants.WRITE_TO_FILE);
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
-    return (start = System.currentTimeMillis() - start);
+    return (System.currentTimeMillis() - start);
   }
+
+  public void greedySearchWithPerms(List<char[]> sequences, int l, int mode) {
+    double maxScore = Integer.MIN_VALUE;
+    MotifResult bestMotifResult = null;
+    int bestFirstSeq = -1;
+    int bestSecondSeq = -1;
+
+    int calleeMode = Constants.STEALTH_EXECUTION;
+
+    for (int i=0; i<sequences.size(); i++) {
+      for (int j=i+1; j<sequences.size(); j++) {
+        // start with i and j
+        List<char[]> shuffledSequences = new ArrayList<char[]>(sequences);
+        char[] firstSeq = null;
+        char[] secondSeq = null;
+        if (i > j) {
+          firstSeq = shuffledSequences.remove(i);
+          secondSeq = shuffledSequences.remove(j);
+        } else if (i < j) {
+          secondSeq = shuffledSequences.remove(j);
+          firstSeq = shuffledSequences.remove(i);
+        } else {
+          System.out.println("ERROR: How can " + j + " and " + i + " be equal.");
+          System.exit(1);
+        }
+
+        shuffledSequences.add(0, secondSeq);
+        shuffledSequences.add(0, firstSeq);
+
+        // call greedy search
+        if (calleeMode == Constants.PRINT_TO_CONSOLE) {
+          System.out.println("\nPerm: " + i + ", " + j);
+        }
+        MotifResult result = greedySearch(shuffledSequences, l, calleeMode);
+
+        //check if it's the best
+        if (result.score > maxScore) {
+          maxScore = bestScore;
+          bestMotifResult = result;
+          bestFirstSeq = i;
+          bestSecondSeq = j;
+        }
+      }
+    }
+
+    if (calleeMode == Constants.PRINT_TO_CONSOLE) {
+      System.out.println("\nResult: ");
+    }
+
+    // Either print to terminal or write to a file
+    if (mode == Constants.PRINT_TO_CONSOLE) {
+      System.out.println("First and Second Seq. index: " + bestFirstSeq + ", " + bestSecondSeq);
+      System.out.println("Positions: " + bestMotifResult.positions);
+      for (int[] arr : bestMotifResult.profileMatrix) {
+        System.out.println(Arrays.toString(arr));
+      }
+    } else if (mode == Constants.WRITE_TO_FILE) {
+      try {
+        writeSites(bestMotifResult.positions);
+        writeMatrix(bestMotifResult.profileMatrix);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public static long runAllWithPerms (String parent) {
+    long start = System.currentTimeMillis();
+    MotifFinder finder = null;
+    for (int dataset=0; dataset<10; dataset++) {
+      String dir = parent + "/dataset" + dataset + "/";
+      //String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
+      finder = new MotifFinder(dir);
+      try {
+        List<char[]> sequences = FileUtil.readSequences(dir);
+        int l = FileUtil.readMotifLength(dir);
+        finder.greedySearchWithPerms(sequences, l, Constants.WRITE_TO_FILE);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return (System.currentTimeMillis() - start);
+  }
+
 
   public static void main(String[] args) {
 
     //String path = "/Users/gourav/code/motif_finder/benchmarks/";
 
-    runAll(BenchmarkGenerator.path + "/default/");
+    /*runAll(BenchmarkGenerator.path + "/default/");
 
     runAll(BenchmarkGenerator.path + "/ML1/");
     runAll(BenchmarkGenerator.path + "/ML2/");
@@ -267,29 +369,20 @@ public class MotifFinder {
     runAll(BenchmarkGenerator.path + "/NM2/");
 
     runAll(BenchmarkGenerator.path + "/SC1/");
-    runAll(BenchmarkGenerator.path + "/SC2/");
+    runAll(BenchmarkGenerator.path + "/SC2/");*/
 
-    /*for (int dataset=0; dataset<10; dataset++) {
-      String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
-      MotifFinder finder = new MotifFinder(dir);
-      try {
-        List<char[]> sequences = FileUtil.readSequences(dir);
 
-        int l = finder.readMotifLength();
-        finder.greedySearch(sequences, l);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }*/
-
-    /*List<char[]> sequences = new ArrayList<char[]>();
+    MotifFinder finder = new MotifFinder("/aba-daba-do");
+    List<char[]> sequences = new ArrayList<char[]>();
     sequences.add(new char[]{'G', 'A', 'G', 'C'});
     sequences.add(new char[]{'G', 'G', 'C', 'G'});
     sequences.add(new char[]{'T', 'G', 'A', 'G'});
     sequences.add(new char[]{'A', 'G', 'C', 'G'});
+    sequences.add(new char[]{'A', 'G', 'C', 'G'});
+    sequences.add(new char[]{'A', 'G', 'C', 'G'});
 
 
-    finder.greedySearch(sequences, 3);*/
+    finder.greedySearchWithPerms(sequences, 3, Constants.PRINT_TO_CONSOLE);
 
     //System.out.print(finder.getAlignment(sequences.get(0), sequences.get(1), 3));
 
