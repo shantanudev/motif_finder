@@ -2,6 +2,7 @@ package edu.illinois.cs;
 
 import edu.illinois.cs.algo.MotifFinder;
 import edu.illinois.cs.benchmark.BenchmarkGenerator;
+import edu.illinois.cs.eval.Data;
 import edu.illinois.cs.eval.Evaluator;
 
 /**
@@ -43,18 +44,20 @@ public class Main {
 
 
     //3. Evaluate Results
-    double def = Evaluator.runAll(BenchmarkGenerator.path + "/default/");
+    Data def = Evaluator.runAll(BenchmarkGenerator.path + "/default/");
 
-    double ml1 = Evaluator.runAll(BenchmarkGenerator.path + "/ML1/");
-    double ml2 = Evaluator.runAll(BenchmarkGenerator.path + "/ML2/");
+    Data ml1 = Evaluator.runAll(BenchmarkGenerator.path + "/ML1/");
+    Data ml2 = Evaluator.runAll(BenchmarkGenerator.path + "/ML2/");
     System.out.println("ML [6,7,8]: " + ml1 + ", " + ml2 + ", " + def);
 
-    double nm1 = Evaluator.runAll(BenchmarkGenerator.path + "/NM1/");
-    double nm2 = Evaluator.runAll(BenchmarkGenerator.path + "/NM2/");
+    Data nm1 = Evaluator.runAll(BenchmarkGenerator.path + "/NM1/");
+    Data nm2 = Evaluator.runAll(BenchmarkGenerator.path + "/NM2/");
     System.out.println("NM [0,1,2]: " + nm1 + ", " + def + ", " + nm2);
 
-    double sc1 = Evaluator.runAll(BenchmarkGenerator.path + "/SC1/");
-    double sc2 = Evaluator.runAll(BenchmarkGenerator.path + "/SC2/");
+    Data sc1 = Evaluator.runAll(BenchmarkGenerator.path + "/SC1/");
+    Data sc2 = Evaluator.runAll(BenchmarkGenerator.path + "/SC2/");
     System.out.println("SC [5,10,20]: " + sc1 + ", " + def + ", " + sc2);
   }
+
+
 }

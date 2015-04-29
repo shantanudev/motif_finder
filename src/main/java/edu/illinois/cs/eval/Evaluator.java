@@ -20,26 +20,26 @@ public class Evaluator {
 
     //String path = "/Users/gourav/code/motif_finder/benchmarks/";
 
-    double def = runAll(BenchmarkGenerator.path + "/default/");
+    Data def = runAll(BenchmarkGenerator.path + "/default/");
 
-    double ml1 = runAll(BenchmarkGenerator.path + "/ML1/");
-    double ml2 = runAll(BenchmarkGenerator.path + "/ML2/");
+    Data ml1 = runAll(BenchmarkGenerator.path + "/ML1/");
+    Data ml2 = runAll(BenchmarkGenerator.path + "/ML2/");
     System.out.println("ML [6,7,8]: " + ml1 + ", " + ml2 + ", " + def);
 
-    double nm1 = runAll(BenchmarkGenerator.path + "/NM1/");
-    double nm2 = runAll(BenchmarkGenerator.path + "/NM2/");
+    Data nm1 = runAll(BenchmarkGenerator.path + "/NM1/");
+    Data nm2 = runAll(BenchmarkGenerator.path + "/NM2/");
     System.out.println("NM [0,1,2]: " + nm1 + ", " + def + ", " + nm2);
 
-    double sc1 = runAll(BenchmarkGenerator.path + "/SC1/");
-    double sc2 = runAll(BenchmarkGenerator.path + "/SC2/");
+    Data sc1 = runAll(BenchmarkGenerator.path + "/SC1/");
+    Data sc2 = runAll(BenchmarkGenerator.path + "/SC2/");
     System.out.println("SC [5,10,20]: " + sc1 + ", " + def + ", " + sc2);
 
 
   }
 
-  public static double runAll(String parent) {
+  public static Data runAll(String parent) {
     //String dir = "/Users/gourav/code/motif_finder/benchmarks/default/dataset0/";
-    double sumEntropy = 0;
+    double[] data = new double[10];
     for (int dataset=0; dataset<10; dataset++) {
       String dir = parent + "/dataset" + dataset + "/";
       try {
@@ -56,15 +56,15 @@ public class Evaluator {
         //System.out.println();
 
         //System.out.println(getRelativeEntropy(probMatrix, predictedProbMatrix) + " - " + dir);
-        sumEntropy += getRelativeEntropyWithPsuedoCounts(probMatrix, predictedProbMatrix);
+        data[dataset] = getRelativeEntropyWithPsuedoCounts(probMatrix, predictedProbMatrix);
 
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
-    sumEntropy = sumEntropy / 10;
+
     //System.out.println(sumEntropy + " - " + parent);
-    return sumEntropy;
+    return new Data(data);
   }
 
   // Gives D(p || q) with psuedoCounts
